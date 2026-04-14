@@ -4,27 +4,47 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <Windows.h>
+#include <windows.h>
+#pragma comment(lib, "user32.lib")
 
 using namespace std;
 
-ofstream salesFile("sales.txt", ios::app);
+int exchangeRate;
 
-string sale;
-int profit, investment = 0;
-int salesAmount;
+struct Sale {
+    int id;
+    int profit;
+    int investment;
+    string saleString;
+};
 
+struct Product {
+    int id;
+    string name;
+    int profit;
+    int stock;
+    int investment;
+};
+
+Sale sale;
+Product product;
 
 void AppStart();
 int SelectOption();
-int AddSales();
+void AddSales();
 int LoadLastID();
 void WantToContinue();
-
-
+void AddProducts();
+//void ViewInfo();
+void UpdateExchangeRate();
+int LoadExchangeRate();
+int LoadLastProductID();
+void ViewProducts();
 
 int main() {
-    salesAmount = LoadLastID(); 
+    sale.id = LoadLastID(); 
+    exchangeRate = LoadExchangeRate(); 
+    product.id = LoadLastProductID();
     AppStart();
     return 0;
 }
@@ -36,8 +56,15 @@ void AppStart()
     cout << "1. Ingresar ventas" << endl;
     cout << "2. Ver datos" << endl;
     cout << "3. Ver logs" << endl;
-    cout << "4. Salir" << endl;
+    cout << "4. Ver productos" << endl;
+    cout << "5. Agregar productos" << endl;
+    cout << "6. Actualizar tasa de cambio" << endl;
+    cout << "7. Salir" << endl;
     cout << "Seleccione una opcion: " << endl;
+
+    if (exchangeRate == 0) {
+        cout << "No se ha establecido una tasa de cambio. Por favor, ingrese la tasa de cambio actual, use 6 para actualizarla." << endl;
+    }
     SelectOption();
 }
 
@@ -57,25 +84,42 @@ int SelectOption()
         cout << "Ver logs" << endl;
         break;
     case 4:
-        cout << "Salir" << endl;
+        ViewProducts();
+        break;
+    case 5:
+        AddProducts();
+        break;
+    case 6:
+        UpdateExchangeRate();
+        break;
+    case 7:
+        cout << "Gracias por usar la aplicacion!" << endl;
+        Sleep(2000);
         break;
     default:
-        cout << "Opcion no valida" << endl;
+        cout << "Opcion no valida, saliendo de la aplicacion." << endl;
+        Sleep(2000);
         break;
     }
     return 0;
 }
 
-int AddSales()
+void AddSales()
 {
+    if (exchangeRate == 0) {
+        MessageBoxA(NULL, "No se ha establecido una tasa de cambio. Por favor, ingrese la tasa de cambio actual.", "ALERTA", MB_OK | MB_ICONWARNING);
+        WantToContinue();
+        return;
+    }
 
+    ofstream salesFile("sales.txt", ios::app);
     cout << "Ingrese cuanto dinero gano y cuanto gasto: " << endl;
-    cin >> profit >> investment;
-    salesAmount++;
+    cin >> sale.profit >> sale.investment;
+    sale.id++;
 
-    salesFile << salesAmount << ". " << "Profit: " << profit << " Investment: " << investment << endl;
-    sale = to_string(salesAmount) + ". Profit: " + to_string(profit) + " Investment: " + to_string(investment);
-    cout << sale << endl;
+    salesFile << sale.id << ". " << "Profit: " << sale.profit << " Investment: " << sale.investment << endl;
+    sale.saleString = to_string(sale.id) + ". Profit: " + to_string(sale.profit) + " Investment: " + to_string(sale.investment);
+    cout << sale.saleString << endl;
 
     if (salesFile.is_open()) 
     {
@@ -86,8 +130,24 @@ int AddSales()
         cout << "No se pudo abrir el archivo para escribir." << endl;
     }
     WantToContinue();
-    return 0;
+}
 
+void AddProducts()
+{
+    cout << "Ingrese el nombre del producto: " << endl;
+    cin >> product.name;
+    cout << "Ingrese el profit del producto: " << endl;
+    cin >> product.profit;
+    cout << "Ingrese la inversion del producto: " << endl;
+    cin >> product.investment;
+    cout << "Ingrese el stock del producto: " << endl;
+    cin >> product.stock;
+
+    ofstream productsFile("products.txt", ios::app);
+    product.id++;
+    productsFile << product.id << ". " << "Name: " << product.name << " Profit: " << product.profit << " Investment: " << product.investment << " Stock: " << product.stock << endl;
+    productsFile.close();
+    WantToContinue();
 }
 
 void WantToContinue()
@@ -124,4 +184,62 @@ int LoadLastID() {
         fileRead.close();
     }
     return count;
+}
+
+int LoadLastProductID() {
+    ifstream fileRead("products.txt");
+    string line;
+    int count = 0;
+    
+    if (fileRead.is_open()) {
+        while (getline(fileRead, line)) {
+            if (!line.empty()) count++; // Cuenta cada línea no vacía como un producto
+        }
+        fileRead.close();
+    }
+    return count;
+}
+
+int LoadExchangeRate() {
+    ifstream fileRead("exchange_rate.txt");
+    int rate = 0;
+    if (fileRead.is_open()) {
+        fileRead >> rate;
+        fileRead.close();
+    }
+    return rate;
+}
+
+void UpdateExchangeRate() {
+    cout << "Ingresa aqui la tasa de cambio actual:" << endl;
+    cin >> exchangeRate;
+
+    ofstream file("exchange_rate.txt", ios::trunc); 
+    
+    if (file.is_open()) {
+        file << exchangeRate;
+        file.close();
+        cout << "Tasa de cambio actualizada con exito." << endl;
+    } 
+    else {
+        cout << "Error: No se pudo actualizar el archivo." << endl;
+    }
+
+
+    WantToContinue();
+}
+
+void ViewProducts() {
+    ifstream fileRead("products.txt");
+    string line;
+    
+    if (fileRead.is_open()) {
+        while (getline(fileRead, line)) {
+            cout << line << endl;
+        }
+        fileRead.close();
+    } else {
+        cout << "No se pudo abrir el archivo para leer." << endl;
+    }
+    WantToContinue();
 }
