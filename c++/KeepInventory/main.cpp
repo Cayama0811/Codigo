@@ -13,17 +13,17 @@ int exchangeRate;
 
 struct Sale {
     int id;
-    int profit;
-    int investment;
+    float profit;
+    float investment;
     string saleString;
 };
 
 struct Product {
     int id;
     string name;
-    int profit;
+    float profit;
     int stock;
-    int investment;
+    float investment;
 };
 
 Sale sale;
