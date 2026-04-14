@@ -135,7 +135,7 @@ void AddSales()
 void AddProducts()
 {
     cout << "Ingrese el nombre del producto: " << endl;
-    cin >> product.name;
+    getline(cin >> ws, product.name);
     cout << "Ingrese el profit del producto: " << endl;
     cin >> product.profit;
     cout << "Ingrese la inversion del producto: " << endl;
